@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETJ Server Monitor</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #08090c;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            padding: 35px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .online {
+            color: #32d74b;
+            font-weight: 600;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 25px;
+            backdrop-filter: blur(20px);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #9b9ba3;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .value {
+            font-size: 52px;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        .bar {
+            height: 8px;
+            background: #24252a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            background: white;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .wide {
+            grid-column: span 3;
+        }
+
+        .details {
+            color: #a1a1aa;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 800px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wide {
+                grid-column: span 1;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div>
+            <h1>ETJ Server Monitor</h1>
+            <div id="hostname">Loading Windows PC...</div>
+        </div>
+
+        <div class="online">● LIVE</div>
+    </header>
+
+    <div class="grid">
+
+        <div class="card">
+            <h2>🧠 CPU</h2>
+            <div class="value"><span id="cpu">0</span>%</div>
+
+            <div class="bar">
+                <div id="cpuBar" class="bar-fill"></div>
+            </div>
+
+            <div id="cpuDetails" class="details">Loading...</div>
+        </div>
+
+        <div class="card">
+            <h2>🎮 GPU</h2>
+            <div class="value" id="gpu">--%</div>
+
+            <div class="bar">
+                <div id="gpuBar" class="bar-fill"></div>
+            </div>
+
+            <div class="details">GPU monitoring coming next</div>
+        </div>
+
+        <div class="card">
+            <h2>💾 RAM</h2>
+            <div class="value"><span id="ram">0</span>%</div>
+
+            <div class="bar">
+                <div id="ramBar" class="bar-fill"></div>
+            </div>
+
+            <div id="ramDetails" class="details">Loading...</div>
+        </div>
+
+        <div class="card wide">
+            <h2>🎬 Jellyfin</h2>
+            <div class="value">COMING NEXT</div>
+            <div class="details">
+                Status • Now Playing • Transcoding
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    function bytesToGB(bytes) {
+        return (bytes / 1024 / 1024 / 1024).toFixed(1);
+    }
+
+    async function updateStats() {
+        try {
+            const response = await fetch("/api/system");
+            const data = await response.json();
+
+            document.getElementById("cpu").textContent =
+                Math.round(data.cpu.usage);
+
+            document.getElementById("cpuBar").style.width =
+                data.cpu.usage + "%";
+
+            document.getElementById("cpuDetails").textContent =
+                data.cpu.cores + " cores • " +
+                data.cpu.threads + " threads • " +
+                Math.round(data.cpu.frequency) + " MHz";
+
+            document.getElementById("ram").textContent =
+                Math.round(data.ram.usage);
+
+            document.getElementById("ramBar").style.width =
+                data.ram.usage + "%";
+
+            document.getElementById("ramDetails").textContent =
+                bytesToGB(data.ram.used) + " GB / " +
+                bytesToGB(data.ram.total) + " GB";
+
+            document.getElementById("hostname").textContent =
+                data.windows.hostname;
+
+        } catch (error) {
+            console.error("Monitor error:", error);
+        }
+    }
+
+    updateStats();
+    setInterval(updateStats, 2000);
+</script>
+
+</body>
+</html>
