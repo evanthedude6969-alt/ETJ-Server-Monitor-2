@@ -2,3 +2,4 @@ Flask
 psutil
 GPUtil
 requests
+python-dotenv
